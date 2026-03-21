@@ -4,6 +4,8 @@ const constants = {
     PORT: process.env.PORT || 3000,
     SECRET_KEY: process.env.SECRET_KEY,
     AUTH_EXPIRATION: '2h',
+    /** Single connection string (Neon, Render, Heroku, etc.) — if set, host/user/pass are ignored */
+    DATABASE_URL: process.env.DATABASE_URL,
     DB_HOST: process.env.DB_HOST,
     DB_PORT: process.env.DB_PORT,
     DB_USER: process.env.DB_USER,
