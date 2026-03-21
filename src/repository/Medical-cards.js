@@ -31,7 +31,7 @@ module.exports = new EntitySchema({
     },
     priority: {
       type: String,
-      nullable: false,gi
+      nullable: false,
     },
     doctor: {
       type: String,

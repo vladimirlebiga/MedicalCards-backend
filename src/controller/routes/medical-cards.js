@@ -13,7 +13,7 @@ const router = express.Router();
 const medicalCardsRepo = () => AppDataSource.getRepository('MedicalCards');
 router.get('/search', checkToken, async (req, res, next) => {
   try {
-    const { search, pastVisit, priority } = req.query;
+    const { search, pastVisit, priority, limit, page } = req.query;
     const userId = req.user.id;
     
     // Build base query with query builder for OR conditions
@@ -38,7 +38,7 @@ router.get('/search', checkToken, async (req, res, next) => {
     if (search) {
       const searchConditions = [];
       const searchParams = {};
-      
+
       // String fields - use LIKE
       const stringFields = ['firstName', 'lastName', 'target', 'description', 'doctor', 'pressure', 'diagnosis'];
       stringFields.forEach((field, index) => {
@@ -46,7 +46,7 @@ router.get('/search', checkToken, async (req, res, next) => {
         searchConditions.push(`card.${field} LIKE :${paramName}`);
         searchParams[paramName] = `%${search}%`;
       });
-      
+
       // Integer fields - try to parse as number and use exact match
       const searchNum = parseFloat(search);
       if (!isNaN(searchNum) && isFinite(searchNum)) {
@@ -56,32 +56,54 @@ router.get('/search', checkToken, async (req, res, next) => {
         searchParams.ageSearch = searchNum;
         searchParams.indexSearch = searchNum;
       }
-      
+
       // Combine all search conditions with OR
       if (searchConditions.length > 0) {
         queryBuilder.andWhere(`(${searchConditions.join(' OR ')})`, searchParams);
       }
     }
-    
+
+    const total = await queryBuilder.getCount();
+    queryBuilder.skip((+page - 1) * +limit).take(+limit);
     const medicalCards = await queryBuilder.getMany();
-    res.json(medicalCards);
+    res.json({
+      data: medicalCards,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / +limit),
+    });
+
   } catch(err) {
     console.error('Medical cards route error:', err);
     next(err);
   }
 })
 
+// GET all cards
 router.get('/', checkToken, async (req, res, next) => {
   try {
     const id = req.user.id;
-    const medicalCards = await medicalCardsRepo().find({ where: { userId: id } });
-    res.json(medicalCards);
+    const { limit, page } = req.query;
+    const [data, total] = await medicalCardsRepo().findAndCount({ 
+      where: { userId: id },
+      skip: (+page - 1) * +limit,
+      take: +limit,
+    });
+    res.json({
+      data,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    });
   } catch (err) {
     console.error('Medical cards route error:', err);
     next(err);
   }
 });
 
+// GET by ID
 router.get('/:id', checkToken, async (req, res, next) => {
   try {
     const id = req.user.id;

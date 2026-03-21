@@ -49,21 +49,15 @@ async function checkExistingUser(req, res, next) {
 //functions token reset password
 
 function base64url(buf) {
-  console.log('buf', buf);
   const base64 = buf.toString("base64");
-  console.log('base64', base64);
   const result = base64.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
-  console.log('result', result);
   return result;
 }
 
 function createResetToken() {
   const raw = base64url(crypto.randomBytes(32)); // send this in email
-  console.log('raw', raw);
   const hash = crypto.createHash("sha256").update(raw).digest("hex"); // store this
-  console.log('hash', hash);
   const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 min
-  console.log('expiresAt', expiresAt);
   return { raw, hash, expiresAt };
 }
 
@@ -80,7 +74,7 @@ function verifyResetToken(rawToken, user) {
   const hash = crypto.createHash("sha256").update(rawToken).digest("hex");
   return safeEqualHex(hash, user.resetTokenHash);
 }
-
+// swagger
 /**
  * @openapi
  * /auth/signup:
@@ -158,7 +152,7 @@ router.post('/signin', validate(loginSchema), checkExistingUser, async (req, res
 });
 
 // GET logout
-router.get('/logout', checkToken, async (req, res, next) => {
+router.post('/logout', checkToken, async (req, res, next) => {
 try {
   res.status(200).json({ message: 'Logged out successfully' });
 } catch (err) {
@@ -180,7 +174,7 @@ router.patch('/change-password', checkToken, async (req, res, next) => {
     const token = await createToken(result);
     res.status(200).send(token);
   }catch (err) {
-    console.log('Change password error:', err);
+    console.error('Change password error:', err);
     next(err);
   }
 });

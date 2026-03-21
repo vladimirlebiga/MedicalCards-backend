@@ -19,4 +19,11 @@ router.get('/', checkToken, async (req, res, next) => {
     }
 });
 
+
+// Delete profile
+
+// Update profile
+
+
+
 module.exports = router;
