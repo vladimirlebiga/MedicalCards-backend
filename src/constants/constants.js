@@ -17,6 +17,8 @@ const constants = {
     GMAIL_USER: process.env.GMAIL_USER,
     GMAIL_PASS: process.env.GMAIL_PASS,
     URL_FRONTEND: process.env.URL_FORGOT_PASSWORD || 'http://127.0.0.1:5500/MedicalCards_frontEnd/reset-password.html',
+    /** Comma-separated extra allowed browser origins (e.g. your Vercel preview URL) */
+    CORS_ORIGINS: process.env.CORS_ORIGINS,
 
 };
 const config = {

@@ -12,11 +12,32 @@ const port = constants.PORT;
 
 app.use(express.json());
 
+// Origin header = scheme + host + port only (no path). Live Server often uses 5500.
+const defaultAllowedOrigins = [
+  'http://127.0.0.1:5500',
+  'http://localhost:5500',
+  'http://127.0.0.1:5501',
+  'http://localhost:5501',
+  'https://vladimirlebiga.github.io',
+];
+const extraOrigins = (constants.CORS_ORIGINS || '')
+  .split(',')
+  .map((s) => s.trim())
+  .filter(Boolean);
+const allowedOrigins = [...new Set([...defaultAllowedOrigins, ...extraOrigins])];
 
-app.use(cors({
-  origin: ['http://127.0.0.1:5501', 'http://localhost:5501', 'https://vladimirlebiga.github.io/MedicalCards-2.0/'],  
-  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
-}));
+app.use(
+  cors({
+    origin(origin, callback) {
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.includes(origin)) return callback(null, true);
+      console.warn('[CORS] Blocked origin:', origin);
+      return callback(null, false);
+    },
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+  })
+);
 
 app.use('/api', require('./controller'));
 
